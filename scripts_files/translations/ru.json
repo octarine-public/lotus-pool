@@ -1,3 +1,14 @@
 {
-	"State": "Состояние"
+	"State": "Состояние",
+	"Lotus pool": "Бассеин лотусов",
+	"Reset settings": "Сбросить настройки",
+	"Additional size": "Доп. размер",
+	"Ping on minimap": "Пинг на мини-карте",
+	"Disable pings (by time)": "Отключить пинги (по времени)",
+	"Format time": "Формат времени",
+	"Show cooldown\nformat time (min:sec)": "Показывать\nформат времени (мин:сек)",
+	"Additional timer size and icon image": "Доп. размер таймера и изображения",
+	"Full turn off or turn on pool lotuses": "Полное отключение или включение лотусов",
+	"Disable minimap pings\nafter (x) game time (minutes)": "Отключить пинги на миникарте\nпосле (x) игровового времени (минуты)",
+	"Show pings on minimap\nuntil new lotuses appear (only you see)": "Показывать пинги на миникарте\n до появление новых лотусов (видите только вы)"
 }
