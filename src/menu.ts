@@ -11,6 +11,7 @@ export class MenuManager {
 	public readonly State: Menu.Toggle
 	public readonly FormatTime: Menu.Toggle
 	public readonly PingMiniMap: Menu.Toggle
+	public readonly ModeImage: Menu.Dropdown
 	public readonly DisableNotificationTime: Menu.Slider
 
 	private readonly tree: Menu.Node
@@ -62,6 +63,8 @@ export class MenuManager {
 			"Additional timer size and icon image"
 		)
 
+		this.ModeImage = this.tree.AddDropdown("Mode images", ["Circle", "Square"])
+
 		this.reset = this.tree.AddButton("Reset settings")
 		this.reset.OnValue(() => this.ResetSettings())
 
@@ -89,6 +92,7 @@ export class MenuManager {
 		this.State.value = this.State.defaultValue
 		this.FormatTime.value = this.FormatTime.defaultValue
 		this.PingMiniMap.value = this.PingMiniMap.defaultValue
+		this.ModeImage.SelectedID = this.ModeImage.defaultValue
 		this.DisableNotificationTime.value = this.DisableNotificationTime.defaultValue
 	}
 }

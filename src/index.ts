@@ -37,23 +37,10 @@ const bootstrap = new (class CLotusPool {
 			if (owner === undefined) {
 				continue
 			}
-
 			const position = owner.Position
-
 			// notification mini map & sound event
-			this.gui.SentNotification(
-				position,
-				menu.PingMiniMap.value,
-				menu.DisableNotificationTime.value
-			)
-
-			this.gui.Draw(
-				position,
-				modifier.StackCount,
-				owner.HealthBarOffset,
-				menu.Size.value,
-				menu.FormatTime.value
-			)
+			this.gui.SentNotification(position, menu)
+			this.gui.Draw(position, modifier.StackCount, owner.HealthBarOffset, menu)
 		}
 	}
 
