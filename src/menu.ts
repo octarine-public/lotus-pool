@@ -2,6 +2,7 @@ import {
 	ImageData,
 	Menu,
 	NotificationsSDK,
+	PathData,
 	ResetSettingsUpdated,
 	Sleeper
 } from "github.com/octarine-public/wrapper/index"
@@ -19,7 +20,7 @@ export class MenuManager {
 
 	private readonly reset: Menu.Button
 	private readonly sleeper = new Sleeper()
-	private readonly lotusImage = ImageData.Paths.ItemIcons + "/famango_png.vtex_c"
+	private readonly lotusImage = PathData.ItemImagePath + "/famango_png.vtex_c"
 
 	constructor() {
 		this.tree = this.visual.AddNode("Lotus pool", this.lotusImage, "", 0)
@@ -36,7 +37,7 @@ export class MenuManager {
 			true,
 			"Show cooldown\nformat time (min:sec)",
 			-1,
-			ImageData.Paths.Icons.icon_svg_format_time
+			ImageData.Icons.icon_svg_format_time
 		)
 
 		this.PingMiniMap = this.tree.AddToggle(

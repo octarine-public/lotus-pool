@@ -8,6 +8,7 @@ import {
 	ImageData,
 	MathSDK,
 	MinimapSDK,
+	PathData,
 	Rectangle,
 	RendererSDK,
 	Sleeper,
@@ -26,7 +27,7 @@ export class LotusPoolGUI {
 	private readonly baseBoxSize = new Vector2()
 
 	// todo from menu
-	private readonly image = ImageData.Paths.ItemIcons + "/famango_png.vtex_c"
+	private readonly image = PathData.ItemImagePath + "/famango_png.vtex_c"
 
 	protected get SpawnTime() {
 		if (GameRules === undefined) {
@@ -155,7 +156,7 @@ export class LotusPoolGUI {
 		if (!stackCount) {
 			return
 		}
-		const icon = ImageData.Paths.Icons.softedge_circle_sharp
+		const icon = ImageData.Icons.softedge_circle_sharp
 		const position = this.position.Clone()
 		position.SubtractY(position.Height / 2)
 		RendererSDK.Image(icon, position.pos1, -1, position.Size, Color.Black.SetA(120))
