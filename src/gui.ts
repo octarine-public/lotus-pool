@@ -27,7 +27,9 @@ export class LotusPoolGUI {
 	private readonly baseBoxSize = new Vector2()
 
 	// todo from menu
-	private readonly image = PathData.ItemImagePath + "/famango_png.vtex_c"
+	private readonly image = PathData.ImagePath + "/hud/timer/lotus_png.vtex_c"
+	private readonly basePath = "github.com/octarine-public/lotus-pool"
+	private readonly background = this.basePath + "/scripts_files/images/background.png"
 
 	protected get SpawnTime() {
 		if (GameRules === undefined) {
@@ -68,6 +70,14 @@ export class LotusPoolGUI {
 		const width = Math.round(border2x2 + Math.round(position.Height / 15))
 		const isCircle = menu.ModeImage.SelectedID === ModeImage.Round
 
+		RendererSDK.Image(
+			this.background,
+			position.pos1,
+			isCircle ? 0 : -1,
+			position.Size,
+			Color.White
+		)
+
 		// image lotus
 		RendererSDK.Image(
 			this.image,
@@ -90,25 +100,31 @@ export class LotusPoolGUI {
 		}
 
 		const ratio = Math.max(100 * (remainingTime / this.SpawnTime), 0)
-		this.OutlineMode(isCircle, position, width, Color.Green)
+		this.OutlineMode(isCircle, position, width, Color.Black)
 
 		if (isCircle) {
 			RendererSDK.Arc(
-				-90,
-				ratio,
+				270,
+				-ratio,
 				position.pos1,
 				position.Size,
 				false,
 				width,
-				Color.Red
+				Color.Green
 			)
 		} else {
 			RendererSDK.Radial(
-				-90,
-				ratio,
+				270,
+				-ratio,
 				position.pos1,
 				position.Size,
-				Color.Red.SetA(75)
+				Color.Black,
+				undefined,
+				undefined,
+				Color.Green,
+				false,
+				3,
+				true
 			)
 		}
 
@@ -173,7 +189,12 @@ export class LotusPoolGUI {
 			RendererSDK.OutlinedCircle(position.pos1, position.Size, color, outlined)
 			return
 		}
-		RendererSDK.OutlinedRect(position.pos1, position.Size, outlined, color)
+		RendererSDK.OutlinedRect(
+			position.pos1.AddScalar(-1),
+			position.Size.AddScalar(3 - 1),
+			outlined,
+			color
+		)
 	}
 
 	protected Update(w2s: Vector2, additionalSize: number) {

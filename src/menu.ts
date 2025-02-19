@@ -20,10 +20,10 @@ export class MenuManager {
 
 	private readonly reset: Menu.Button
 	private readonly sleeper = new Sleeper()
-	private readonly lotusImage = PathData.ItemImagePath + "/famango_png.vtex_c"
+	private readonly lotusImage = PathData.ImagePath + "/hud/timer/lotus_png.vtex_c"
 
 	constructor() {
-		this.tree = this.visual.AddNode("Lotus pool", this.lotusImage, "", 0)
+		this.tree = this.visual.AddNode("Lotus pool", this.lotusImage)
 		this.tree.SortNodes = false
 
 		this.State = this.tree.AddToggle(

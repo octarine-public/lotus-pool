@@ -4,6 +4,7 @@ import {
 	DOTAGameState,
 	EventsSDK,
 	GameRules,
+	LotusPool,
 	MangoTree,
 	Modifier
 } from "github.com/octarine-public/wrapper/index"
@@ -11,12 +12,22 @@ import {
 import { LotusPoolGUI } from "./gui"
 import { MenuManager } from "./menu"
 
-const bootstrap = new (class CLotusPool {
+new (class CLotusPool {
 	private readonly gui = new LotusPoolGUI()
 	private readonly menu = new MenuManager()
 
 	private readonly modifiers: Modifier[] = []
-	private readonly modName = "modifier_passive_mango_tree"
+	private readonly modName = [
+		"modifier_passive_mango_tree",
+		"modifier_passive_lotus_pool"
+	]
+
+	constructor() {
+		EventsSDK.on("Draw", this.Draw.bind(this))
+		EventsSDK.on("GameEnded", this.GameChanged.bind(this))
+		EventsSDK.on("ModifierCreated", this.ModifierCreated.bind(this))
+		EventsSDK.on("ModifierRemoved", this.ModifierRemoved.bind(this))
+	}
 
 	public get IsPostGame() {
 		return (
@@ -24,54 +35,49 @@ const bootstrap = new (class CLotusPool {
 			GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
 		)
 	}
-
 	public Draw() {
 		if (!this.menu.State.value || this.IsPostGame) {
 			return
 		}
-
 		const menu = this.menu
-		for (let index = this.modifiers.length - 1; index > -1; index--) {
-			const modifier = this.modifiers[index]
-			const owner = modifier.Parent
-			if (owner === undefined) {
+		for (let i = this.modifiers.length - 1; i > -1; i--) {
+			const modifier = this.modifiers[i]
+			const owner = modifier.Parent,
+				caster = modifier.Caster
+			if (owner === undefined || caster === undefined) {
 				continue
 			}
-			const position = owner.Position
+			const isLotusPool = caster instanceof LotusPool,
+				position = isLotusPool ? caster.Position : owner.Position,
+				barOffset = isLotusPool ? caster.HealthBarOffset : owner.HealthBarOffset
 			// notification mini map & sound event
 			this.gui.SentNotification(position, menu)
-			this.gui.Draw(position, modifier.StackCount, owner.HealthBarOffset, menu)
+			this.gui.Draw(position, modifier.StackCount, barOffset, menu)
 		}
 	}
-
-	public ModifierCreated(modifier: Modifier) {
-		if (modifier.Name !== this.modName) {
+	protected ModifierCreated(modifier: Modifier) {
+		if (!this.modName.includes(modifier.Name)) {
 			return
 		}
-		if (modifier.Parent instanceof MangoTree) {
+		if (this.isValidParent(modifier)) {
 			this.modifiers.push(modifier)
 		}
 	}
-
-	public ModifierRemoved(modifier: Modifier) {
-		if (modifier.Name !== this.modName) {
+	protected ModifierRemoved(modifier: Modifier) {
+		if (!this.modName.includes(modifier.Name)) {
 			return
 		}
-		if (modifier.Parent instanceof MangoTree) {
+		if (this.isValidParent(modifier)) {
 			this.modifiers.remove(modifier)
 		}
 	}
-
-	public GameChanged() {
+	protected GameChanged() {
 		this.gui.GameChanged()
 		this.menu.GameChanged()
 	}
+	private isValidParent(modifier: Modifier) {
+		return (
+			modifier.Parent instanceof MangoTree || modifier.Caster instanceof LotusPool
+		)
+	}
 })()
-
-EventsSDK.on("Draw", () => bootstrap.Draw())
-
-EventsSDK.on("GameEnded", () => bootstrap.GameChanged())
-
-EventsSDK.on("ModifierCreated", modifier => bootstrap.ModifierCreated(modifier))
-
-EventsSDK.on("ModifierRemoved", modifier => bootstrap.ModifierRemoved(modifier))
