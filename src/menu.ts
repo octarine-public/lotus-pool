@@ -1,11 +1,4 @@
-import {
-	ImageData,
-	Menu,
-	NotificationsSDK,
-	PathData,
-	ResetSettingsUpdated,
-	Sleeper
-} from "github.com/octarine-public/wrapper/index"
+import { ImageData, Menu, PathData } from "github.com/octarine-public/wrapper/index"
 
 export class MenuManager {
 	public readonly Size: Menu.Slider
@@ -17,9 +10,6 @@ export class MenuManager {
 
 	private readonly tree: Menu.Node
 	private readonly visual = Menu.AddEntry("Visual")
-
-	private readonly reset: Menu.Button
-	private readonly sleeper = new Sleeper()
 	private readonly lotusImage = PathData.ImagePath + "/hud/timer/lotus_png.vtex_c"
 
 	constructor() {
@@ -66,34 +56,18 @@ export class MenuManager {
 
 		this.ModeImage = this.tree.AddDropdown("Mode images", ["Circle", "Square"])
 
-		this.reset = this.tree.AddButton("Reset settings")
-		this.reset.OnValue(() => this.ResetSettings())
-
 		this.PingMiniMap.OnValue(call => {
 			this.DisableNotificationTime.IsHidden = !call.value
 			this.tree.Update()
 		})
 	}
 
-	public ResetSettings() {
-		if (!this.sleeper.Sleeping("ResetSettings")) {
-			this.resetValues()
-			this.tree.Update()
-			NotificationsSDK.Push(new ResetSettingsUpdated())
-			this.sleeper.Sleep(2 * 1000, "ResetSettings")
-		}
-	}
-
-	public GameChanged() {
-		this.sleeper.FullReset()
-	}
-
-	private resetValues() {
-		this.Size.value = this.Size.defaultValue
-		this.State.value = this.State.defaultValue
-		this.FormatTime.value = this.FormatTime.defaultValue
-		this.PingMiniMap.value = this.PingMiniMap.defaultValue
-		this.ModeImage.SelectedID = this.ModeImage.defaultValue
-		this.DisableNotificationTime.value = this.DisableNotificationTime.defaultValue
+	public MenuChanged(callback: () => void) {
+		this.State.OnValue(() => callback())
+		this.FormatTime.OnValue(() => callback())
+		this.PingMiniMap.OnValue(() => callback())
+		this.DisableNotificationTime.OnValue(() => callback())
+		this.Size.OnValue(() => callback())
+		this.ModeImage.OnValue(() => callback())
 	}
 }

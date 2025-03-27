@@ -8,6 +8,7 @@ import {
 	ImageData,
 	MathSDK,
 	MinimapSDK,
+	Modifier,
 	PathData,
 	Rectangle,
 	RendererSDK,
@@ -25,6 +26,7 @@ export class LotusPoolGUI {
 	private readonly sleeper = new Sleeper()
 	private readonly position = new Rectangle()
 	private readonly baseBoxSize = new Vector2()
+	private readonly minimapKeyName = "minimap_lotus_pool"
 
 	// todo from menu
 	private readonly image = PathData.ImagePath + "/hud/timer/lotus_png.vtex_c"
@@ -64,7 +66,6 @@ export class LotusPoolGUI {
 		if (!this.Update(w2s, menu.Size.value)) {
 			return
 		}
-
 		const position = this.position
 		const border2x2 = GUIInfo.ScaleHeight(2)
 		const width = Math.round(border2x2 + Math.round(position.Height / 15))
@@ -135,8 +136,15 @@ export class LotusPoolGUI {
 		this.DrawStackCount(stackCount)
 	}
 
-	public GameChanged() {
+	public GameEnded(arr: Modifier[]) {
+		this.deleteIcons(arr)
 		this.sleeper.FullReset()
+	}
+
+	public MenuChanged(menu: MenuManager, arr: Modifier[]) {
+		if (!menu.State.value) {
+			this.deleteIcons(arr)
+		}
 	}
 
 	public SentNotification(origin: Vector3, menu: MenuManager) {
@@ -155,6 +163,11 @@ export class LotusPoolGUI {
 		SoundSDK.EmitStartSoundEvent("General.Ping")
 		MinimapSDK.DrawPing(origin, Color.White, rawTime + 7)
 		this.sleeper.Sleep(7 * 1000, keyName)
+	}
+
+	public DrawOnMinimap(origin: Vector3, stackCount: number, serial: number) {
+		const color = stackCount !== 0 ? Color.Aqua : Color.Red
+		MinimapSDK.DrawIcon("lotuspool", origin, 195, color, 0, this.keyName(serial))
 	}
 
 	protected DrawStackCount(
@@ -215,5 +228,15 @@ export class LotusPoolGUI {
 				: Math.ceil(remaining).toFixed()
 		}
 		return remaining.toFixed(remaining < 2 ? 1 : 0)
+	}
+
+	private keyName(serial: number) {
+		return `${this.minimapKeyName}_${serial}`
+	}
+
+	private deleteIcons(arr: Modifier[]) {
+		for (let i = arr.length - 1; i > -1; i--) {
+			MinimapSDK.DeleteIcon(this.keyName(arr[i].SerialNumber))
+		}
 	}
 }

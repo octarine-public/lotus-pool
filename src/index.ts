@@ -24,9 +24,10 @@ new (class CLotusPool {
 
 	constructor() {
 		EventsSDK.on("Draw", this.Draw.bind(this))
-		EventsSDK.on("GameEnded", this.GameChanged.bind(this))
+		EventsSDK.on("GameEnded", this.GameEnded.bind(this))
 		EventsSDK.on("ModifierCreated", this.ModifierCreated.bind(this))
 		EventsSDK.on("ModifierRemoved", this.ModifierRemoved.bind(this))
+		this.menu.MenuChanged(() => this.gui.MenuChanged(this.menu, this.modifiers))
 	}
 
 	public get IsPostGame() {
@@ -53,6 +54,7 @@ new (class CLotusPool {
 			// notification mini map & sound event
 			this.gui.SentNotification(position, menu)
 			this.gui.Draw(position, modifier.StackCount, barOffset, menu)
+			this.gui.DrawOnMinimap(position, modifier.StackCount, modifier.SerialNumber)
 		}
 	}
 	protected ModifierCreated(modifier: Modifier) {
@@ -71,9 +73,8 @@ new (class CLotusPool {
 			this.modifiers.remove(modifier)
 		}
 	}
-	protected GameChanged() {
-		this.gui.GameChanged()
-		this.menu.GameChanged()
+	protected GameEnded() {
+		this.gui.GameEnded(this.modifiers)
 	}
 	private isValidParent(modifier: Modifier) {
 		return (
