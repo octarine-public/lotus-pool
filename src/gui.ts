@@ -165,6 +165,10 @@ export class LotusPoolGUI {
 		this.sleeper.Sleep(7 * 1000, keyName)
 	}
 
+	public DeleteIconMinimap(modifier: Modifier) {
+		MinimapSDK.DeleteIcon(this.keyName(modifier.SerialNumber))
+	}
+
 	public DrawOnMinimap(origin: Vector3, stackCount: number, serial: number) {
 		const color = stackCount !== 0 ? Color.Aqua : Color.Red
 		MinimapSDK.DrawIcon("lotuspool", origin, 195, color, 0, this.keyName(serial))
@@ -236,7 +240,7 @@ export class LotusPoolGUI {
 
 	private deleteIcons(arr: Modifier[]) {
 		for (let i = arr.length - 1; i > -1; i--) {
-			MinimapSDK.DeleteIcon(this.keyName(arr[i].SerialNumber))
+			this.DeleteIconMinimap(arr[i])
 		}
 	}
 }

@@ -71,6 +71,7 @@ new (class CLotusPool {
 		}
 		if (this.isValidParent(modifier)) {
 			this.modifiers.remove(modifier)
+			this.gui.DeleteIconMinimap(modifier)
 		}
 	}
 	protected GameEnded() {
