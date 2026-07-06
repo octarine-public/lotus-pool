@@ -6,7 +6,8 @@ import {
 	GameRules,
 	LotusPool,
 	MangoTree,
-	Modifier
+	Modifier,
+	RendererSDK
 } from "github.com/octarine-public/wrapper/index"
 
 import { LotusPoolGUI } from "./gui"
@@ -23,11 +24,14 @@ new (class CLotusPool {
 	]
 
 	constructor() {
-		EventsSDK.on("Draw", this.Draw.bind(this))
+		EventsSDK.on("Draw2D", this.Draw.bind(this))
 		EventsSDK.on("GameEnded", this.GameEnded.bind(this))
 		EventsSDK.on("ModifierCreated", this.ModifierCreated.bind(this))
 		EventsSDK.on("ModifierRemoved", this.ModifierRemoved.bind(this))
-		this.menu.MenuChanged(() => this.gui.MenuChanged(this.menu, this.modifiers))
+		this.menu.MenuChanged(() => {
+			this.gui.MenuChanged(this.menu, this.modifiers)
+			RendererSDK.InvalidateDraw2D()
+		})
 	}
 
 	public get IsPostGame() {
@@ -49,11 +53,18 @@ new (class CLotusPool {
 				continue
 			}
 			const isLotusPool = caster instanceof LotusPool,
-				position = isLotusPool ? caster.Position : owner.Position,
-				barOffset = isLotusPool ? caster.HealthBarOffset : owner.HealthBarOffset
+				anchorEntity = isLotusPool ? caster : owner,
+				position = anchorEntity.Position,
+				barOffset = anchorEntity.HealthBarOffset
 			// notification mini map & sound event
 			this.gui.SentNotification(position, menu)
-			this.gui.Draw(position, modifier.StackCount, barOffset, menu)
+			this.gui.Draw(
+				anchorEntity.Index,
+				position,
+				modifier.StackCount,
+				barOffset,
+				menu
+			)
 			this.gui.DrawOnMinimap(position, modifier.StackCount, modifier.SerialNumber)
 		}
 	}
@@ -63,6 +74,7 @@ new (class CLotusPool {
 		}
 		if (this.isValidParent(modifier)) {
 			this.modifiers.push(modifier)
+			RendererSDK.InvalidateDraw2D()
 		}
 	}
 	protected ModifierRemoved(modifier: Modifier) {
@@ -72,6 +84,7 @@ new (class CLotusPool {
 		if (this.isValidParent(modifier)) {
 			this.modifiers.remove(modifier)
 			this.gui.DeleteIconMinimap(modifier)
+			RendererSDK.InvalidateDraw2D()
 		}
 	}
 	protected GameEnded() {

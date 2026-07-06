@@ -21,6 +21,8 @@ import {
 import { ModeImage } from "./enum"
 import { MenuManager } from "./menu"
 
+const LOTUS_KIND = RendererSDK.AllocateAnchorKind()
+
 export class LotusPoolGUI {
 	private readonly baseSize = 22
 	private readonly sleeper = new Sleeper()
@@ -50,6 +52,7 @@ export class LotusPoolGUI {
 	}
 
 	public Draw(
+		entityIndex: number,
 		origin: Vector3,
 		stackCount: number,
 		healthBarOffset: number,
@@ -66,6 +69,21 @@ export class LotusPoolGUI {
 		if (!this.Update(w2s, menu.Size.value)) {
 			return
 		}
+		RendererSDK.DrawEntityRelative(
+			entityIndex,
+			LOTUS_KIND,
+			() => {
+				const pos = RendererSDK.WorldToScreen(originOffset)
+				if (pos === undefined || GUIInfo.Contains(pos)) {
+					return undefined
+				}
+				return pos
+			},
+			() => this.DrawContent(stackCount, menu)
+		)
+	}
+
+	protected DrawContent(stackCount: number, menu: MenuManager) {
 		const position = this.position
 		const border2x2 = GUIInfo.ScaleHeight(2)
 		const width = Math.round(border2x2 + Math.round(position.Height / 15))
@@ -217,12 +235,14 @@ export class LotusPoolGUI {
 	protected Update(w2s: Vector2, additionalSize: number) {
 		this.baseBoxSize.SetX(GUIInfo.ScaleWidth(this.baseSize + additionalSize))
 		this.baseBoxSize.SetY(GUIInfo.ScaleHeight(this.baseSize + additionalSize))
-		const position = w2s.SubtractForThis(
-			this.baseBoxSize.DivideScalar(2).FloorForThis()
-		)
-		this.position.pos1.CopyFrom(position)
-		this.position.pos2.CopyFrom(position.Add(this.baseBoxSize))
-		return !GUIInfo.Contains(this.position.pos1)
+		const sizeDiv = this.baseBoxSize.DivideScalar(2).FloorForThis()
+		if (GUIInfo.Contains(w2s.Subtract(sizeDiv))) {
+			return false
+		}
+		const pos1 = sizeDiv.MultiplyScalar(-1)
+		this.position.pos1.CopyFrom(pos1)
+		this.position.pos2.CopyFrom(pos1.Add(this.baseBoxSize))
+		return true
 	}
 
 	protected GetRemainingText(remaining: number, formatTime: boolean) {
