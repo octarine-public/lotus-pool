@@ -1,22 +1,3 @@
-import {
-	Color,
-	DOTAGameMode,
-	DOTAGameUIState,
-	GameRules,
-	GameState,
-	GUIInfo,
-	ImageData,
-	MathSDK,
-	MinimapSDK,
-	Modifier,
-	PathData,
-	Rectangle,
-	RendererSDK,
-	Sleeper,
-	SoundSDK,
-	Vector2,
-	Vector3
-} from "github.com/octarine-public/wrapper/index"
 
 import { ModeImage } from "./enum"
 import { MenuManager } from "./menu"
@@ -34,15 +15,15 @@ export class LotusPoolGUI {
 	private readonly background = this.basePath + "/scripts_files/images/background.png"
 
 	protected get SpawnTime() {
-		if (GameRules === undefined) {
+		if (Dota2SDK.GameRules === undefined) {
 			return 0
 		}
 		const spawn = 3 * 60 // every 3 min
-		return GameRules.GameMode === DOTAGameMode.DOTA_GAMEMODE_TURBO ? spawn / 2 : spawn
+		return Dota2SDK.GameRules.GameMode === DOTAGameMode.DOTA_GAMEMODE_TURBO ? spawn / 2 : spawn
 	}
 
 	protected get ModuleTime() {
-		return (GameRules?.GameTime ?? 0) % Math.floor(this.SpawnTime)
+		return (Dota2SDK.GameRules?.GameTime ?? 0) % Math.floor(this.SpawnTime)
 	}
 
 	protected get RemainingTime() {
@@ -228,7 +209,7 @@ export class LotusPoolGUI {
 	protected GetRemainingText(remaining: number, formatTime: boolean) {
 		if (remaining > 60) {
 			return formatTime
-				? MathSDK.FormatTime(remaining)
+				? Math.formatTime(remaining)
 				: Math.ceil(remaining).toFixed()
 		}
 		return remaining.toFixed(remaining < 2 ? 1 : 0)

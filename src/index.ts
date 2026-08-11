@@ -1,14 +1,5 @@
 import "./translations"
 
-import {
-	DOTAGameState,
-	EventsSDK,
-	GameRules,
-	LotusPool,
-	MangoTree,
-	Modifier
-} from "github.com/octarine-public/wrapper/index"
-
 import { LotusPoolGUI } from "./gui"
 import { MenuManager } from "./menu"
 
@@ -32,8 +23,8 @@ new (class CLotusPool {
 
 	public get IsPostGame() {
 		return (
-			GameRules === undefined ||
-			GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
+			Dota2SDK.GameRules === undefined ||
+			Dota2SDK.GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
 		)
 	}
 	public Draw() {

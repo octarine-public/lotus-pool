@@ -2,10 +2,8 @@
 	"compileOnSave": true,
 	"compilerOptions": {
 		"target": "esnext",
-		"module": "ES2022",
-		"moduleResolution": "Node",
-		"rootDir": "../../../",
-		"baseUrl": "../../../",
+		"module": "esnext",
+		"moduleResolution": "bundler",
 		"noEmit": true,
 		"noUnusedLocals": true,
 		"strict": true,
@@ -15,14 +13,19 @@
 		"lib": [
 			"ESNext"
 		],
+		"paths": {
+			"github.com/*": [
+				"../../*"
+			]
+		}
 	},
 	"include": [
 		"./**/*.ts",
-		"../../**/*.d.ts"
+		"./**/*.tsx"
 	],
 	"exclude": [
 		"wrapper_autogen/**/*",
 		"node_modules/**/*",
-		"scripts_files/**/*",
+		"scripts_files/**/*"
 	]
 }
