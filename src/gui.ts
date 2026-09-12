@@ -1,4 +1,4 @@
-
+import { canvas } from "../render"
 import { ModeImage } from "./enum"
 import { MenuManager } from "./menu"
 
@@ -9,7 +9,6 @@ export class LotusPoolGUI {
 	private readonly baseBoxSize = new Vector2()
 	private readonly minimapKeyName = "minimap_lotus_pool"
 
-	// todo from menu
 	private readonly image = PathData.ImagePath + "/hud/timer/lotus_png.vtex_c"
 	private readonly basePath = "github.com/octarine-public/lotus-pool"
 	private readonly background = this.basePath + "/scripts_files/images/background.png"
@@ -18,8 +17,10 @@ export class LotusPoolGUI {
 		if (Dota2SDK.GameRules === undefined) {
 			return 0
 		}
-		const spawn = 3 * 60 // every 3 min
-		return Dota2SDK.GameRules.GameMode === DOTAGameMode.DOTA_GAMEMODE_TURBO ? spawn / 2 : spawn
+		const spawn = 180
+		return Dota2SDK.GameRules.GameMode === DOTAGameMode.DOTA_GAMEMODE_TURBO
+			? spawn / 2
+			: spawn
 	}
 
 	protected get ModuleTime() {
@@ -52,26 +53,19 @@ export class LotusPoolGUI {
 		const width = Math.round(border2x2 + Math.round(position.Height / 15))
 		const isCircle = menu.ModeImage.SelectedID === ModeImage.Round
 
-		RendererSDK.Image(
-			this.background,
-			position.pos1,
-			isCircle ? 0 : -1,
-			position.Size,
-			Color.White
-		)
+		canvas.Image(this.background, position.pos1, position.Size, {
+			color: Color.White,
 
-		// image lotus
-		RendererSDK.Image(
-			this.image,
-			position.pos1,
-			isCircle ? 0 : -1,
-			position.Size,
-			Color.White
-		)
+			circle: isCircle
+		})
 
-		// TODO: get max stack count
+		canvas.Image(this.image, position.pos1, position.Size, {
+			color: Color.White,
+
+			circle: isCircle
+		})
+
 		if (stackCount >= 6) {
-			// draw stack count
 			this.DrawStackCount(stackCount, isCircle, true, width)
 			return
 		}
@@ -85,35 +79,30 @@ export class LotusPoolGUI {
 		this.OutlineMode(isCircle, position, width, Color.Black)
 
 		if (isCircle) {
-			RendererSDK.Arc(
-				270,
-				-ratio,
-				position.pos1,
-				position.Size,
-				false,
-				width,
-				Color.Green
-			)
+			canvas.Circle(position.pos1, position.Size, {
+				color: Color.fromUint32(0),
+				borderColor: Color.Green,
+				borderWidth: width,
+				start: 270,
+				sweep: -ratio * 3.6
+			})
 		} else {
-			RendererSDK.Radial(
-				270,
-				-ratio,
-				position.pos1,
-				position.Size,
-				Color.Black,
-				undefined,
-				undefined,
-				Color.Green,
-				false,
-				3,
-				true
-			)
+			const sweep = Math.clamp(-ratio, -100, 100) * 3.6
+			canvas.Rect(position.pos1.AddScalar(-1), position.Size.AddScalar(2), {
+				color: Color.fromUint32(0),
+				borderColor: Color.Green,
+				borderWidth: 3,
+				start: 270,
+				sweep: sweep < 0 ? sweep + 360 : sweep
+			})
 		}
 
 		const remainingText = this.GetRemainingText(remainingTime, menu.FormatTime.value)
-		RendererSDK.TextByFlags(remainingText, position, Color.White, 2.66)
+		canvas.TextIn(remainingText, position, {
+			color: Color.White,
+			size: position.Height / 2.66 + 4
+		})
 
-		// draw stack count
 		this.DrawStackCount(stackCount)
 	}
 
@@ -143,7 +132,7 @@ export class LotusPoolGUI {
 		}
 		SoundSDK.EmitStartSoundEvent("General.Ping")
 		MinimapSDK.DrawPing(origin, Color.White, rawTime + 7)
-		this.sleeper.Sleep(7 * 1000, keyName)
+		this.sleeper.Sleep(7000, keyName)
 	}
 
 	public DeleteIconMinimap(modifier: Modifier) {
@@ -163,7 +152,10 @@ export class LotusPoolGUI {
 	) {
 		if (isFullStack) {
 			const pos = this.position
-			RendererSDK.TextByFlags(stackCount.toString(), pos, Color.White, 2.66)
+			canvas.TextIn(stackCount.toString(), pos, {
+				color: Color.White,
+				size: pos.Height / 2.66 + 4
+			})
 			this.OutlineMode(isCircle, pos, width, Color.Green)
 			return
 		}
@@ -173,8 +165,11 @@ export class LotusPoolGUI {
 		const icon = ImageData.Icons.softedge_circle_sharp
 		const position = this.position.Clone()
 		position.SubtractY(position.Height / 2)
-		RendererSDK.Image(icon, position.pos1, -1, position.Size, Color.Black.SetA(120))
-		RendererSDK.TextByFlags(stackCount.toString(), position, Color.White, 2.66)
+		canvas.Image(icon, position.pos1, position.Size, { color: Color.Black.SetA(120) })
+		canvas.TextIn(stackCount.toString(), position, {
+			color: Color.White,
+			size: position.Height / 2.66 + 4
+		})
 	}
 
 	protected OutlineMode(
@@ -184,15 +179,18 @@ export class LotusPoolGUI {
 		color: Color
 	) {
 		if (isCircle) {
-			RendererSDK.OutlinedCircle(position.pos1, position.Size, color, outlined)
+			canvas.Circle(position.pos1, position.Size, {
+				color: Color.fromUint32(0),
+				borderColor: color,
+				borderWidth: outlined
+			})
 			return
 		}
-		RendererSDK.OutlinedRect(
-			position.pos1.AddScalar(-1),
-			position.Size.AddScalar(3 - 1),
-			outlined,
-			color
-		)
+		canvas.Rect(position.pos1.AddScalar(-1), position.Size.AddScalar(2), {
+			color: Color.fromUint32(0),
+			borderColor: color,
+			borderWidth: outlined
+		})
 	}
 
 	protected Update(w2s: Vector2, additionalSize: number) {
