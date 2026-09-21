@@ -1,1 +1,19 @@
-{}
+{
+	"State": "启用",
+	"Lotus pool": "莲花池",
+	"Timers and stacks of the lotus pools,\nover the pool and on the minimap": "莲花池的计时器和莲花数量，\n显示在池上方和小地图上",
+	"Notification": "通知方式",
+	"Where to announce the lotus\n20 seconds before it spawns": "在莲花刷新前 20 秒\n于何处发出通知",
+	"Game chat": "游戏聊天",
+	"Side card": "侧边卡片",
+	"Disable": "关闭",
+	"Spawns in 20 seconds": "20 秒后刷新",
+	"Minimap alert": "小地图提醒",
+	"Also pings the minimap and plays a sound\n20 seconds before the lotus spawns": "同时在莲花刷新前 20 秒\n于小地图发出信号并播放提示音",
+	"Alerts until": "提醒截止时间",
+	"The game time the alerts stop at,\nin minutes": "提醒停止的游戏时间，\n以分钟计",
+	"Format time": "时间格式",
+	"Show remaining\ntime as min:sec": "以 分:秒 格式\n显示剩余时间",
+	"Size in world": "世界中的大小",
+	"Size of the chip drawn over the pool": "池上方标签的大小"
+}
