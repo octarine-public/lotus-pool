@@ -1,20 +1,11 @@
+import { ChannelOf, CreateChannelSelect, MigrateChannelRow } from "./channel"
 import { LotusIcons } from "./icons"
-
-/** The options the notification row lists, in the order it lists them. */
-const channelNames = ["Game chat", "Side card", "Disable"]
-
-/** The channel each option stands for, under the same index; "Disable" stands for none. */
-const channelsOfOption: readonly Nullable<NotificationChannel>[] = [
-	NotificationChannel.Chat,
-	NotificationChannel.Side,
-	undefined
-]
 
 export class MenuManager {
 	public static Menu: MenuManager
 
 	public readonly State: Menu.Toggle
-	/** Where the notice of a coming lotus goes: the game chat, a side card, or nowhere. */
+	/** Where the notice of a coming lotus goes: as picked in Settings, the game chat, a side card, or nowhere. */
 	public readonly Notification: Menu.Dropdown
 	public readonly NotifyMinimap: Menu.Toggle
 	/** The game time, in minutes, the alerts fall silent at. */
@@ -43,12 +34,7 @@ export class MenuManager {
 		this.node.HeaderControl = this.State
 		this.node.Gate = this.State
 
-		this.Notification = this.node.AddDropdown(
-			"Notification",
-			[...channelNames],
-			channelsOfOption.indexOf(NotificationChannel.Side),
-			"Where to announce the lotus\n20 seconds before it spawns"
-		)
+		this.Notification = CreateChannelSelect(this.node, true)
 		this.Notification.IconPath = LotusIcons.Notification
 
 		this.NotifyMinimap = this.node.AddToggle(
@@ -91,10 +77,11 @@ export class MenuManager {
 
 	/** The channel the coming lotus is announced on, or nothing while the row is on "Disable". */
 	public get Channel(): Nullable<NotificationChannel> {
-		return channelsOfOption[this.Notification.SelectedID]
+		return ChannelOf(this.Notification)
 	}
 
 	private migrate(stored: Nullable<MenuSDK.ConfigObject>) {
+		MigrateChannelRow(stored)
 		MenuSDK.RenameStoredRow(stored, "Ping on minimap", "Minimap alert")
 		MenuSDK.RenameStoredRow(stored, "Disable pings (by time)", "Alerts until")
 	}

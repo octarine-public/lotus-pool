@@ -48,11 +48,11 @@ const SIZE_STEP = 12
 /** How long the plate takes to turn most of the way to the colour of a new state, in ms. */
 const RECOLOR_MS = 160
 /**
- * How long the reading takes to come most of the way in, or to go back out, in ms: the plate opens
- * under it as it fades in, and closes over it as it fades out, rather than the chip jumping a
- * word wider or narrower on the frame the reading started or stopped.
+ * How long the reading takes to come in, or to go back out, in ms: the plate opens under it as it
+ * fades in, and closes over it as it fades out, the two on one and the same curve, rather than the
+ * chip jumping a word wider or narrower on the frame the reading started or stopped.
  */
-const REVEAL_MS = 80
+const REVEAL_MS = 100
 /** The minimap's name for the pool. */
 const MINIMAP_ICON = "lotuspool"
 /** The lotus the HUD's own timer wears, which the chip wears the way a bar wears a portrait. */
@@ -114,13 +114,17 @@ export class GUI {
 		}
 		const k = (menu.Size.value + SIZE_STEP) / (SIZE_BASE + SIZE_STEP),
 			text = this.reading(state, remaining, menu)
-		if (text.length !== 0) {
-			this.shown = text
-		}
-		this.approach(text.length === 0 ? 0 : 1, dt)
-
 		// the card is laid out at the world scale, so the menu's own scale does not resize it
 		MenuSDK.setHudWorldScale(k)
+		// a reading moves in only once the host has measured it: one not measured yet comes back
+		// 0 wide, and the plate would open on nothing and then jump wide as the measurement lands
+		const measured =
+			text.length !== 0 && MenuSDK.HudText.Width(text, FONT, WEIGHT) !== 0
+		if (measured) {
+			this.shown = text
+		}
+		this.approach(text.length !== 0 && (measured || this.reveal > 0) ? 1 : 0, dt)
+		const open = MenuSDK.EaseValue(MenuSDK.Ease.Out, this.reveal)
 		const height = MenuSDK.hudH(HEIGHT),
 			pad = MenuSDK.hudW(PAD),
 			padText = MenuSDK.hudW(PAD_TEXT),
@@ -132,7 +136,7 @@ export class GUI {
 					? 0
 					: MenuSDK.HudText.Width(this.shown, FONT, WEIGHT),
 			// the reading brings its own wider margin with it, so a chip without one stays a square plate
-			slot = this.reveal * (gap + textW + padText - pad),
+			slot = open * (gap + textW + padText - pad),
 			width = Math.round(pad + glyph + slot + pad),
 			x = Math.round(w2s.x - width / 2),
 			y = Math.round(w2s.y - height / 2),
@@ -152,10 +156,10 @@ export class GUI {
 				Color.WhiteReadonly,
 				255
 			)
-			if (this.reveal > 0 && textW > 0) {
+			if (open > 0 && textW > 0) {
 				// the reading slides out from under the glyph as the plate opens, fading in as it
 				// goes, and back under it as the plate closes
-				MenuSDK.SetHudAlphaScale(this.reveal * this.reveal)
+				MenuSDK.SetHudAlphaScale(open)
 				MenuSDK.HudText.Center(
 					x + width - padText - textW,
 					centerY,
@@ -224,15 +228,16 @@ export class GUI {
 			OUTLINE
 		)
 	}
-	/** Eases {@link GUI.reveal} part of the way to `target`, and snaps the last hair of it. */
+	/** Moves {@link GUI.reveal} towards `target` at a steady pace, the whole way in {@link REVEAL_MS}. */
 	private approach(target: number, dt: number) {
 		if (this.reveal === target) {
 			return
 		}
-		this.reveal += (target - this.reveal) * Math.min(dt / REVEAL_MS, 1)
-		if (Math.abs(target - this.reveal) < 0.01) {
-			this.reveal = target
-		}
+		const step = (dt * MenuSDK.AnimationSpeed()) / REVEAL_MS
+		this.reveal =
+			target > this.reveal
+				? Math.min(this.reveal + step, target)
+				: Math.max(this.reveal - step, target)
 	}
 	/**
 	 * What the chip reads: the time left to the next lotus, or nothing while the pool is full and

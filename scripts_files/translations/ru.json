@@ -7,7 +7,7 @@
 	"Game chat": "Игровой чат",
 	"Side card": "Боковая карточка",
 	"Disable": "Отключить",
-	"Spawns in 20 seconds": "Появится через 20 секунд",
+	"Spawns in 20 seconds": "Появится через 20 с",
 	"Minimap alert": "Оповещение на мини-карте",
 	"Also pings the minimap and plays a sound\n20 seconds before the lotus spawns": "Также пинг на мини-карте и звук\nза 20 секунд до появления",
 	"Alerts until": "Оповещать до",
@@ -15,5 +15,8 @@
 	"Format time": "Формат времени",
 	"Show remaining\ntime as min:sec": "Показывать оставшееся\nвремя как мин:сек",
 	"Size in world": "Размер в мире",
-	"Size of the chip drawn over the pool": "Размер плашки над бассейном"
+	"Size of the chip drawn over the pool": "Размер плашки над бассейном",
+	"Notification type": "Тип уведомления",
+	"As in settings": "Как в настройках",
+	"Where to notify: as picked in Settings,\nthe game chat or a side card": "Куда выводить уведомления: как в настройках,\nв игровой чат или на боковую карточку"
 }
