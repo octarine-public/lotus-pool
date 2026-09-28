@@ -1,4 +1,3 @@
-import { ChannelOf, CreateChannelSelect, MigrateChannelRow } from "./channel"
 import { LotusIcons } from "./icons"
 
 export class MenuManager {
@@ -34,7 +33,7 @@ export class MenuManager {
 		this.node.HeaderControl = this.State
 		this.node.Gate = this.State
 
-		this.Notification = CreateChannelSelect(this.node, true)
+		this.Notification = NotificationsSDK.AddChannelRow(this.node, true)
 		this.Notification.IconPath = LotusIcons.Notification
 
 		this.NotifyMinimap = this.node.AddToggle(
@@ -77,11 +76,11 @@ export class MenuManager {
 
 	/** The channel the coming lotus is announced on, or nothing while the row is on "Disable". */
 	public get Channel(): Nullable<NotificationChannel> {
-		return ChannelOf(this.Notification)
+		return NotificationsSDK.ChannelOf(this.Notification)
 	}
 
 	private migrate(stored: Nullable<MenuSDK.ConfigObject>) {
-		MigrateChannelRow(stored)
+		NotificationsSDK.MigrateChannelRow(stored)
 		MenuSDK.RenameStoredRow(stored, "Ping on minimap", "Minimap alert")
 		MenuSDK.RenameStoredRow(stored, "Disable pings (by time)", "Alerts until")
 	}
