@@ -10,6 +10,7 @@
 	"Spawns in 20 seconds": "Появится через 20 с",
 	"Minimap alert": "Оповещение на мини-карте",
 	"Also pings the minimap and plays a sound\n20 seconds before the lotus spawns": "Также пинг на мини-карте и звук\nза 20 секунд до появления",
+	" min": " мин",
 	"Alerts until": "Оповещать до",
 	"The game time the alerts stop at,\nin minutes": "Игровое время, после которого\nоповещения прекращаются, в минутах",
 	"Format time": "Формат времени",

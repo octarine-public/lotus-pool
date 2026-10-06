@@ -45,13 +45,14 @@ export class MenuManager {
 
 		this.Silence = this.node.AddSlider(
 			"Alerts until",
-			10,
+			6,
 			5,
 			60,
 			0,
 			"The game time the alerts stop at,\nin minutes"
 		)
 		this.Silence.IconPath = LotusIcons.Silence
+		this.Silence.Suffix = " min"
 
 		this.FormatTime = this.node.AddToggle(
 			"Format time",
