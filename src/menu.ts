@@ -1,4 +1,5 @@
 import { LotusIcons } from "./icons"
+import { AddMapObjectsPage } from "./map-objects"
 
 export class MenuManager {
 	public static Menu: MenuManager
@@ -12,8 +13,7 @@ export class MenuManager {
 	public readonly FormatTime: Menu.Toggle
 	public readonly Size: Menu.Slider
 
-	private readonly tree = Menu.AddEntry("Visual")
-	private readonly node = this.tree.AddNode(
+	private readonly node = AddMapObjectsPage(
 		"Lotus pool",
 		LotusIcons.Lotus,
 		"Timers and stacks of the lotus pools,\nover the pool and on the minimap"
