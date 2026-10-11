@@ -1,4 +1,4 @@
-import { surface } from "../render"
+import { ChipSurface } from "../render"
 import { MenuManager } from "./menu"
 
 /** What the pool is doing, which decides the colour the chip wears and what it reads. */
@@ -66,13 +66,34 @@ export function StateTint(state: LotusState) {
 	return state === LotusState.Full ? FullTint : WaitingTint
 }
 
+/** What a frame of the chip is built from, so a frame built from the same can be held instead. */
+class FrameStamp {
+	private readonly values: unknown[] = []
+	private index = 0
+	private same = true
+
+	public get Same() {
+		return this.same
+	}
+	public Begin() {
+		this.index = 0
+		this.same = true
+	}
+	public Put(value: unknown) {
+		if (this.values[this.index] !== value) {
+			this.values[this.index] = value
+			this.same = false
+		}
+		this.index++
+	}
+}
+
 export class GUI {
-	/**
-	 * How many cards this frame has carved so far, over every pool. Cards carved by one and the
-	 * same shader string share a decorator instance in RmlUi, so each one on the surface has to be
-	 * handed a step of its own; the step is invisible.
-	 */
-	private static carved = 0
+	private readonly chip = new ChipSurface()
+	private readonly stamp = new FrameStamp()
+	/** Where the pool stood on screen, rounded, on the frame last drawn. */
+	private drawnX = 0
+	private drawnY = 0
 	private lastFrame = -1
 	/** The colour the chip wears this frame, on its way to the colour of the current state. */
 	private readonly tint = new Color()
@@ -90,10 +111,6 @@ export class GUI {
 	private readonly box = new Rectangle()
 	private readonly pos = new Vector2()
 	private readonly size = new Vector2()
-	/** A frame is starting: no card has been carved on the surface yet. */
-	public static BeginFrame() {
-		GUI.carved = 0
-	}
 
 	public DrawWorld(
 		origin: Vector3,
@@ -120,6 +137,17 @@ export class GUI {
 		MenuSDK.setHudWorldScale(k)
 		const taken = this.shown.Take(text) && this.shown.Text === text
 		this.approach(text.length !== 0 && (taken || this.reveal > 0) ? 1 : 0, dt)
+		const surface = this.chip.Surface,
+			anchorX = Math.round(w2s.x),
+			anchorY = Math.round(w2s.y)
+		if (
+			this.restamp(k, stacks) &&
+			surface.Keep(anchorX - this.drawnX, anchorY - this.drawnY)
+		) {
+			return
+		}
+		this.drawnX = anchorX
+		this.drawnY = anchorY
 		const open = MenuSDK.EaseValue(MenuSDK.Ease.Out, this.reveal)
 		const height = MenuSDK.hudH(HEIGHT),
 			pad = MenuSDK.hudW(PAD),
@@ -130,8 +158,8 @@ export class GUI {
 			// the reading brings its own wider margin with it, so a chip without one stays a square plate
 			slot = open * (gap + textW + padText - pad),
 			width = Math.round(pad + glyph + slot + pad),
-			x = Math.round(w2s.x - width / 2),
-			y = Math.round(w2s.y - height / 2),
+			x = Math.round(anchorX - width / 2),
+			y = Math.round(anchorY - height / 2),
 			centerY = y + height / 2
 
 		MenuSDK.SetActiveSurface(surface)
@@ -186,6 +214,7 @@ export class GUI {
 	}
 	public Destroy(serial: number) {
 		MinimapSDK.DeleteIcon(this.getMinimapKey(serial))
+		this.chip.Drop()
 	}
 	/**
 	 * The plate under the chip: the menu's own card, so the glass, the rim, the blur and the halo are
@@ -195,8 +224,27 @@ export class GUI {
 		const radius = MenuSDK.hudRadius(RADIUS)
 		this.box.pos1.SetVector(x, y)
 		this.box.pos2.SetVector(x + w, y + h)
-		MenuSDK.HudCard.Frame(this.box, 255, RADIUS, GUI.carved++)
+		MenuSDK.HudCard.Frame(this.box, 255, RADIUS)
 		MenuSDK.HudCard.Plate(x, y, w, h, radius, this.tint, MenuSDK.hudAlpha(TINT))
+	}
+	/** Writes what this frame is built from and answers whether the last frame was built from the same. */
+	private restamp(scale: number, stacks: number) {
+		const stamp = this.stamp,
+			theme = MenuSDK.Theme
+		stamp.Begin()
+		stamp.Put(this.shown.Text)
+		stamp.Put(this.shown.Width)
+		stamp.Put(this.reveal)
+		stamp.Put(this.tint.r)
+		stamp.Put(this.tint.g)
+		stamp.Put(this.tint.b)
+		stamp.Put(stacks)
+		stamp.Put(scale)
+		stamp.Put(MenuSDK.DpToPx(1))
+		stamp.Put(theme.PaletteEpoch)
+		stamp.Put(theme.Glow)
+		stamp.Put(MenuSDK.FontEpoch())
+		return stamp.Same
 	}
 	/**
 	 * How many lotuses the pool holds, written at the flower's shoulder in white and cut out against

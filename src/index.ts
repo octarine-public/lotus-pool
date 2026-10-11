@@ -1,6 +1,5 @@
 import "./translations"
 
-import { GUI } from "./gui"
 import { MenuManager } from "./menu"
 import { LotusModel } from "./model"
 
@@ -50,7 +49,6 @@ new (class CLotusPool {
 		if (!this.shouldDraw) {
 			return
 		}
-		GUI.BeginFrame()
 		for (let i = this.entities.length - 1; i > -1; i--) {
 			this.entities[i].Draw()
 		}
