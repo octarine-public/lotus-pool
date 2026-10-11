@@ -312,6 +312,25 @@ declare namespace MenuSDK {
 		 * @see MenuHost.onRetainedPass
 		 */
 		public get Retained(): boolean
+		/**
+		 * Leaves what the surface shows exactly as the last frame wrote it, for a drawer whose frame
+		 * would come out the same: nothing is pushed, compared or written this frame. Answers whether
+		 * it did. A surface already drawn into this frame, one standing with no frame at all - never
+		 * drawn, or wiped since - or one with an image still waiting on its texture keeps nothing, and
+		 * its frame ends as it would have. Anything
+		 * pushed after a hold in the same frame opens the frame as usual and drops the hold.
+		 *
+		 * `shiftX` / `shiftY` stand the kept frame that many px off where it was drawn, the whole of it
+		 * at once, for a card pinned to the world whose anchor moved on screen while nothing on it
+		 * changed: the camera panning past a camp moves one element rather than rewriting every one.
+		 * The next frame drawn stands where its own commands put it again.
+		 *
+		 * @example
+		 * if (unchanged && surface.Keep(anchor.x - drawnAt.x, anchor.y - drawnAt.y)) {
+		 * 	return
+		 * }
+		 */
+		public Keep(shiftX?: number, shiftY?: number): boolean
 		public Open(): void
 		/**
 		 * A frame opens at its first command rather than on a call, so a caller drawing from more than
