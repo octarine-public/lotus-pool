@@ -1,98 +1,85 @@
 import "./translations"
 
-import {
-	DOTAGameState,
-	EventsSDK,
-	GameRules,
-	LotusPool,
-	MangoTree,
-	Modifier,
-	RendererSDK
-} from "github.com/octarine-public/wrapper/index"
-
-import { LotusPoolGUI } from "./gui"
 import { MenuManager } from "./menu"
+import { LotusModel } from "./model"
+
+/** The modifiers a pool's lotuses are counted on: the pool's own, and the tree's in the event map. */
+const modifierNames = ["modifier_passive_mango_tree", "modifier_passive_lotus_pool"]
 
 new (class CLotusPool {
-	private readonly gui = new LotusPoolGUI()
-	private readonly menu = new MenuManager()
+	private readonly menu!: MenuManager
+	private readonly entities: LotusModel[] = []
 
-	private readonly modifiers: Modifier[] = []
-	private readonly modName = [
-		"modifier_passive_mango_tree",
-		"modifier_passive_lotus_pool"
-	]
-
-	constructor() {
-		EventsSDK.on("Draw2D", this.Draw.bind(this))
-		EventsSDK.on("GameEnded", this.GameEnded.bind(this))
-		EventsSDK.on("ModifierCreated", this.ModifierCreated.bind(this))
-		EventsSDK.on("ModifierRemoved", this.ModifierRemoved.bind(this))
-		this.menu.MenuChanged(() => {
-			this.gui.MenuChanged(this.menu, this.modifiers)
-			RendererSDK.InvalidateDraw2D()
-		})
-	}
-
-	public get IsPostGame() {
-		return (
-			GameRules === undefined ||
-			GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
-		)
-	}
-	public Draw() {
-		if (!this.menu.State.value || this.IsPostGame) {
+	constructor(canBeInitialized: boolean) {
+		if (!canBeInitialized) {
 			return
 		}
-		const menu = this.menu
-		for (let i = this.modifiers.length - 1; i > -1; i--) {
-			const modifier = this.modifiers[i]
-			const owner = modifier.Parent,
-				caster = modifier.Caster
-			if (owner === undefined || caster === undefined) {
-				continue
+		this.menu = new MenuManager()
+		EventsSDK.on("Draw", this.Draw.bind(this))
+		EventsSDK.on("GameEnded", this.GameEnded.bind(this))
+		EventsSDK.on("PostDataUpdate", this.PostDataUpdate.bind(this))
+
+		EventsSDK.on("ModifierCreated", this.ModifierCreated.bind(this))
+		EventsSDK.on("ModifierRemoved", this.ModifierRemoved.bind(this))
+
+		// a switched-off page leaves no icons of its own on the minimap
+		this.menu.State.OnValue(state => {
+			if (!state.value) {
+				this.clearMinimap()
 			}
-			const isLotusPool = caster instanceof LotusPool,
-				anchorEntity = isLotusPool ? caster : owner,
-				position = anchorEntity.Position,
-				barOffset = anchorEntity.HealthBarOffset
-			// notification mini map & sound event
-			this.gui.SentNotification(position, menu)
-			this.gui.Draw(
-				anchorEntity.Index,
-				position,
-				modifier.StackCount,
-				barOffset,
-				menu
-			)
-			this.gui.DrawOnMinimap(position, modifier.StackCount, modifier.SerialNumber)
+		})
+	}
+	private get isUIGame() {
+		return GameState.UIState === DOTAGameUIState.DOTA_GAME_UI_DOTA_INGAME
+	}
+	private get isPostGame() {
+		return (
+			Dota2SDK.GameRules === undefined ||
+			Dota2SDK.GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
+		)
+	}
+	private get shouldDraw() {
+		return this.menu.State.value && this.isUIGame && !this.isPostGame
+	}
+	protected GameEnded() {
+		LotusModel.GameEnded()
+		this.clearMinimap()
+	}
+	protected Draw() {
+		if (!this.shouldDraw) {
+			return
+		}
+		for (let i = this.entities.length - 1; i > -1; i--) {
+			this.entities[i].Draw()
+		}
+	}
+	protected PostDataUpdate(dt: number) {
+		if (dt === 0 || this.isPostGame) {
+			return
+		}
+		for (let i = this.entities.length - 1; i > -1; i--) {
+			this.entities[i].PostDataUpdate()
 		}
 	}
 	protected ModifierCreated(modifier: Modifier) {
-		if (!this.modName.includes(modifier.Name)) {
-			return
-		}
-		if (this.isValidParent(modifier)) {
-			this.modifiers.push(modifier)
-			RendererSDK.InvalidateDraw2D()
+		if (this.isValidModifier(modifier)) {
+			this.entities.push(new LotusModel(modifier))
 		}
 	}
 	protected ModifierRemoved(modifier: Modifier) {
-		if (!this.modName.includes(modifier.Name)) {
-			return
-		}
-		if (this.isValidParent(modifier)) {
-			this.modifiers.remove(modifier)
-			this.gui.DeleteIconMinimap(modifier)
-			RendererSDK.InvalidateDraw2D()
+		if (this.isValidModifier(modifier)) {
+			this.entities.removeCallback(x => x.Modifier === modifier && x.Destroy())
 		}
 	}
-	protected GameEnded() {
-		this.gui.GameEnded(this.modifiers)
-	}
-	private isValidParent(modifier: Modifier) {
+	private isValidModifier(modifier: Modifier) {
 		return (
-			modifier.Parent instanceof MangoTree || modifier.Caster instanceof LotusPool
+			modifierNames.includes(modifier.Name) &&
+			(modifier.Parent instanceof MangoTree || modifier.Caster instanceof LotusPool)
 		)
 	}
-})()
+	private clearMinimap() {
+		for (let i = this.entities.length - 1; i > -1; i--) {
+			this.entities[i].Destroy()
+		}
+	}
+})(true)
