@@ -5,17 +5,20 @@ let count = 0
 
 /**
  * The surface one pool's chip draws on, and nothing else does. A chip that has not changed is
- * held as it was drawn and only moved with its pool on screen, which takes a surface of its own:
- * the camera moves every pool across the screen by a different amount.
+ * held as it was drawn, on its pool's anchor, which takes a surface of its own: a surface is held
+ * whole, and every pool's chip changes at its own time.
  */
 export class ChipSurface {
-	public readonly Surface: MenuSDK.CHudSurface
 	private readonly key = PREFIX + count++
 
-	constructor() {
-		this.Surface = MenuSDK.HudSurfaceOf(this.key, layer)
+	/**
+	 * The surface, opened afresh after {@link ChipSurface.Drop} for a pool drawn again: a dropped
+	 * one is never ticked again, so the anchors it would take for the chip would never be freed.
+	 */
+	public get Surface(): MenuSDK.CHudSurface {
+		return MenuSDK.HudSurfaceOf(this.key, layer)
 	}
-	/** Takes the surface off the host for good, for a pool the game is done with. */
+	/** Takes the surface off the host, for a pool the game is done with or a page switched off. */
 	public Drop() {
 		MenuSDK.DropHudSurface(this.key)
 	}

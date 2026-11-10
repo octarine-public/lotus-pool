@@ -91,9 +91,6 @@ class FrameStamp {
 export class GUI {
 	private readonly chip = new ChipSurface()
 	private readonly stamp = new FrameStamp()
-	/** Where the pool stood on screen, rounded, on the frame last drawn. */
-	private drawnX = 0
-	private drawnY = 0
 	private lastFrame = -1
 	/** The colour the chip wears this frame, on its way to the colour of the current state. */
 	private readonly tint = new Color()
@@ -137,17 +134,10 @@ export class GUI {
 		MenuSDK.setHudWorldScale(k)
 		const taken = this.shown.Take(text) && this.shown.Text === text
 		this.approach(text.length !== 0 && (taken || this.reveal > 0) ? 1 : 0, dt)
-		const surface = this.chip.Surface,
-			anchorX = Math.round(w2s.x),
-			anchorY = Math.round(w2s.y)
-		if (
-			this.restamp(k, stacks) &&
-			surface.Keep(anchorX - this.drawnX, anchorY - this.drawnY)
-		) {
+		const surface = this.chip.Surface
+		if (this.restamp(k, stacks) && surface.Keep()) {
 			return
 		}
-		this.drawnX = anchorX
-		this.drawnY = anchorY
 		const open = MenuSDK.EaseValue(MenuSDK.Ease.Out, this.reveal)
 		const height = MenuSDK.hudH(HEIGHT),
 			pad = MenuSDK.hudW(PAD),
@@ -158,10 +148,11 @@ export class GUI {
 			// the reading brings its own wider margin with it, so a chip without one stays a square plate
 			slot = open * (gap + textW + padText - pad),
 			width = Math.round(pad + glyph + slot + pad),
-			x = Math.round(anchorX - width / 2),
-			y = Math.round(anchorY - height / 2),
+			x = Math.round(-width / 2),
+			y = Math.round(-height / 2),
 			centerY = y + height / 2
 
+		surface.AnchorWorld(this.anchor.x, this.anchor.y, this.anchor.z)
 		MenuSDK.SetActiveSurface(surface)
 		try {
 			this.plate(x, y, width, height)
@@ -200,6 +191,7 @@ export class GUI {
 			}
 		} finally {
 			MenuSDK.SetActiveSurface(undefined)
+			surface.Anchor()
 		}
 	}
 	public DrawOnMinimap(origin: Vector3, stacks: number, serial: number) {
@@ -227,11 +219,18 @@ export class GUI {
 		MenuSDK.HudCard.Frame(this.box, 255, RADIUS)
 		MenuSDK.HudCard.Plate(x, y, w, h, radius, this.tint, MenuSDK.hudAlpha(TINT))
 	}
-	/** Writes what this frame is built from and answers whether the last frame was built from the same. */
+	/**
+	 * Writes what this frame is built from and answers whether the last frame was built from the
+	 * same. The point the chip stands on is part of it: a held chip stays on the anchor it was
+	 * drawn on, which the core moves with the camera.
+	 */
 	private restamp(scale: number, stacks: number) {
 		const stamp = this.stamp,
 			theme = MenuSDK.Theme
 		stamp.Begin()
+		stamp.Put(this.anchor.x)
+		stamp.Put(this.anchor.y)
+		stamp.Put(this.anchor.z)
 		stamp.Put(this.shown.Text)
 		stamp.Put(this.shown.Width)
 		stamp.Put(this.reveal)
